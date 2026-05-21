@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI
+from google import genai
 import os
 
 # --- PAGE CONFIGURATION ---
@@ -11,13 +11,13 @@ st.set_page_config(
 
 # --- HEADER ---
 st.title("🏙️ Real Estate Project SEO Generator")
-st.markdown("Generate high-converting SEO titles, meta descriptions, hashtags, and tweets using Grok AI.")
+st.markdown("Generate high-converting SEO titles, meta descriptions, hashtags, and tweets using Gemini AI.")
 
 # --- SIDEBAR (API KEY) ---
 with st.sidebar:
     st.header("⚙️ Configuration")
-    api_key = st.text_input("Enter Grok API Key (xAI)", type="password")
-    st.markdown("Get your API key from [xAI Console](https://console.x.ai/).")
+    api_key = st.text_input("Enter Gemini API Key", type="password")
+    st.markdown("Get your API key from [Google AI Studio](https://aistudio.google.com/).")
 
 # --- MAIN FORM ---
 with st.form("seo_form"):
@@ -55,19 +55,16 @@ with st.form("seo_form"):
 # --- AI GENERATION LOGIC ---
 if submit_button:
     if not api_key:
-        st.error("Please enter your Grok API key in the sidebar to continue.")
+        st.error("Please enter your Gemini API key in the sidebar to continue.")
     elif not project_name or not city or not micro_market or not config_options:
         st.error("Please fill in all mandatory fields marked with *")
     else:
-        with st.spinner("Generating SEO & Social Content with Grok..."):
+        with st.spinner("Generating SEO & Social Content with Gemini..."):
             try:
-                # Initialize OpenAI client with xAI's base URL
-                client = OpenAI(
-                    api_key=api_key,
-                    base_url="https://api.x.ai/v1",
-                )
+                # Initialize Gemini Client using the new SDK standard
+                client = genai.Client(api_key=api_key)
 
-                # Construct the Prompt (Updated with Tweet Generation)
+                # Construct the Prompt
                 prompt = f"""
                 Act as an expert Real Estate Digital Marketer and SEO Specialist. 
                 Generate high-converting SEO content, social media hashtags, and promotional tweets for an upcoming real estate project launch.
@@ -93,20 +90,16 @@ if submit_button:
                 ### 6. Promotional Tweets (Write 3 short, engaging tweets under 280 characters each. Incorporate the project USP, location, and the X hashtags generated in section 5. Use appropriate emojis.)
                 """
 
-                # Call Grok API
-                response = client.chat.completions.create(
-                    model="grok-beta", 
-                    messages=[
-                        {"role": "system", "content": "You are an expert SEO copywriter for real estate."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7
+                # Call Gemini API
+                response = client.models.generate_content(
+                    model='gemini-2.5-pro',
+                    contents=prompt,
                 )
                 
                 # Display Results
                 st.success("Content Generated Successfully!")
                 st.markdown("---")
-                st.markdown(response.choices[0].message.content)
+                st.markdown(response.text)
                 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
